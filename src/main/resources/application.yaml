@@ -1,0 +1,48 @@
+# 应用服务 WEB 访问端口
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+spring:
+  application:
+    name: mapl-picture-backend
+    # 数据库
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/mapl_picture
+    username: root
+    password: 040414@ghw
+mybatis-plus:
+  configuration:
+    # MyBatis 配置
+    map-underscore-to-camel-case: false
+    # 开发时打印日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  # 逻辑删除
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-not-delete-value: 0
+      logic-delete-value: 1
+# 接口文档
+knife4j:
+  enable: true
+  openapi:
+    title: 接口文档
+    version: 1.0
+    group:
+      default:
+        api-rule: package
+        api-rule-resources:
+          - com.ghw.maplpicturebackend.controller
+
+# 对象存储配置
+#cos:
+#  client:
+#    host:
+#    secretId:
+#    secretKey:
+#    region:
+#    bucket:
+
+
