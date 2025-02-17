@@ -34,31 +34,31 @@ public class FileController {
      * @param multipartFile
      * @return
      */
-    @PostMapping("/test/upload")
-    @AuthCheck(mustRole = Constant.ADMIN_AUTH)
-    public BaseResponse<String> testUploadFile(@RequestPart("file")MultipartFile multipartFile) {
-        // 指定文件存放目录
-        String filename = multipartFile.getOriginalFilename();
-        String filepath = String.format("/test/%s", filename);
-        File file = null;
-        // 上传文件
-        try {
-            file = File.createTempFile(filepath, null);
-            multipartFile.transferTo(file);
-            cosManage.putObject(filepath, file);
-            // 返回访问地址
-            return ResultUtils.success(filepath);
-        } catch (IOException e) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "上传失败");
-        } finally {
-            if (file != null) {
-                boolean delete = file.delete();
-                if(!delete) {
-                    log.error("file delete error, filepath = {}", filepath);
-                }
-            }
-        }
-    }
+//    @PostMapping("/test/upload")
+//    @AuthCheck(mustRole = Constant.ADMIN_AUTH)
+//    public BaseResponse<String> testUploadFile(@RequestPart("file")MultipartFile multipartFile) {
+//        // 指定文件存放目录
+//        String filename = multipartFile.getOriginalFilename();
+//        String filepath = String.format("/test/%s", filename);
+//        File file = null;
+//        // 上传文件
+//        try {
+//            file = File.createTempFile(filepath, null);
+//            multipartFile.transferTo(file);
+//            cosManage.putObject(filepath, file);
+//            // 返回访问地址
+//            return ResultUtils.success(filepath);
+//        } catch (IOException e) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "上传失败");
+//        } finally {
+//            if (file != null) {
+//                boolean delete = file.delete();
+//                if(!delete) {
+//                    log.error("file delete error, filepath = {}", filepath);
+//                }
+//            }
+//        }
+//    }
 
     /**
      * 测试文件下载

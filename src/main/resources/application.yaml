@@ -3,7 +3,13 @@ server:
   port: 8123
   servlet:
     context-path: /api
+    session:
+      cookie:
+        max-age: 2592000
 spring:
+  session:
+    store-type: redis
+    timeout: 2592000
   application:
     name: mapl-picture-backend
     # 数据库
@@ -44,5 +50,10 @@ knife4j:
 #    secretKey:
 #    region:
 #    bucket:
+
+# 阿里云 AI 配置
+aliYunAi:
+  apiKey: xxxx
+
 
 

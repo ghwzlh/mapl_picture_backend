@@ -18,4 +18,6 @@ public class Constant {
     public static final String ADMIN_AUTH = "admin";
 
     public static final String DEFAULT_PASSWORD = "123456";
+
+    public static final String THREADLOCAL_USER = "user";
 }

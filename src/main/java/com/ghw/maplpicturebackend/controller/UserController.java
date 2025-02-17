@@ -7,6 +7,7 @@ import com.ghw.maplpicturebackend.Exception.ErrorCode;
 import com.ghw.maplpicturebackend.Exception.ThrowUtils;
 import com.ghw.maplpicturebackend.Utils.PasswordUtils;
 import com.ghw.maplpicturebackend.annotation.AuthCheck;
+import com.ghw.maplpicturebackend.annotation.LogAdd;
 import com.ghw.maplpicturebackend.common.BaseResponse;
 import com.ghw.maplpicturebackend.common.Constant;
 import com.ghw.maplpicturebackend.common.DeleteRequest;
@@ -16,7 +17,9 @@ import com.ghw.maplpicturebackend.model.VO.User.LoginUserVO;
 import com.ghw.maplpicturebackend.model.VO.User.UserVO;
 import com.ghw.maplpicturebackend.model.entity.User;
 import com.ghw.maplpicturebackend.model.enums.userRoleEnum;
+import com.ghw.maplpicturebackend.service.SpaceService;
 import com.ghw.maplpicturebackend.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,12 +31,17 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/user")
+@Slf4j
 public class UserController {
 
     private final UserService userService;
 
-    public UserController(UserService userService) {
+    private SpaceService spaceService;
+
+
+    public UserController(UserService userService, SpaceService spaceService) {
         this.userService = userService;
+        this.spaceService = spaceService;
     }
 
     /**
@@ -42,13 +50,14 @@ public class UserController {
      * @return 用户ID
      */
     @PostMapping("/register")
-    public BaseResponse<Long> userRegister(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
+    public BaseResponse<Long> userRegister(@RequestBody @Valid UserRegisterRequest userRegisterRequest ) {
         boolean present = Optional.ofNullable(userRegisterRequest).isPresent();
         if(!present) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
         }
         ThrowUtils.throwIf(!ObjectUtil.equals(userRegisterRequest.getUserPassword(), userRegisterRequest.getCheckPassword()), ErrorCode.PARAMS_ERROR, "两次密码输入不一致");
         long userId = userService.userRegister(userRegisterRequest);
+        ThrowUtils.throwIf(ObjectUtil.isNull(userId), ErrorCode.OPERATION_ERROR, "注册用户失败", "register failed");
         return ResultUtils.success(userId);
     }
 
@@ -66,6 +75,17 @@ public class UserController {
         }
         LoginUserVO loginUserVO = userService.userLogin(userLoginRequest, request);
         ThrowUtils.throwIf(loginUserVO == null, ErrorCode.NOT_FOUND_ERROR, "请求数据不存在", "userLoginVO is disappear");
+        // todo: 如果私有空间未创建就自动创建私有空间
+        // todo: 解耦
+//        List<Space> list = spaceService.lambdaQuery().eq(Space::getUserId, loginUserVO.getId()).list();
+//        if(!list.isEmpty()){
+//            User user = new User();
+//            BeanUtils.copyProperties(Objects.requireNonNull(loginUserVO), user);
+//            spaceAddRequest spaceAddRequest = new spaceAddRequest();
+//            spaceAddRequest.setSpaceLevel(spaceLevelEnum.COMMON.getValue());
+//            spaceAddRequest.setSpaceName(userLoginRequest.getUserAccount() + "默认空间");
+//            spaceService.addSpace(spaceAddRequest, user);
+//        }
         return ResultUtils.success(loginUserVO);
     }
 
@@ -83,12 +103,13 @@ public class UserController {
     }
 
     /**
-     * 用户注销
+     * 获取用户信息
      * @param request
      * @return 用户信息
      */
-    @AuthCheck(mustRole = Constant.USER_AUTH)
+    // @AuthCheck(mustRole = Constant.USER_AUTH)
     @GetMapping("/get/login")
+    @LogAdd
     public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
         ThrowUtils.throwIf(request == null, ErrorCode.PARAMS_ERROR, "参数错误", "request is null");
         User loginUser = userService.getLoginUser(request);
@@ -99,6 +120,7 @@ public class UserController {
     /**
      * 创建用户
      */
+    @LogAdd
     @PostMapping("/add")
     @AuthCheck(mustRole = Constant.ADMIN_AUTH)
     public BaseResponse<Long> addUser(@RequestBody @Valid UserAddRequest userAddRequest) {
@@ -116,6 +138,7 @@ public class UserController {
     /**
      * 根据 id 获取用户（仅管理员）
      */
+    @LogAdd
     @GetMapping("/get")
     @AuthCheck(mustRole = Constant.ADMIN_AUTH)
     public BaseResponse<User> getUserById(long id) {
@@ -128,6 +151,7 @@ public class UserController {
     /**
      * 根据 id 获取包装类
      */
+    @LogAdd
     @GetMapping("/get/vo")
     public BaseResponse<UserVO> getUserVOById(long id) {
         BaseResponse<User> response = getUserById(id);
@@ -138,6 +162,7 @@ public class UserController {
     /**
      * 删除用户
      */
+    @LogAdd
     @PostMapping("/delete")
     @AuthCheck(mustRole = Constant.ADMIN_AUTH)
     public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
@@ -152,6 +177,7 @@ public class UserController {
     /**
      * 更新用户(仅管理员和自己)
      */
+    @LogAdd
     @PostMapping("/update")
     @AuthCheck(mustRole = Constant.USER_AUTH)
     public BaseResponse<Boolean> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
@@ -190,6 +216,7 @@ public class UserController {
      *
      * @param userQueryRequest 查询请求参数
      */
+    @LogAdd
     @PostMapping("/list/page/inner/vo")
     @AuthCheck(mustRole = Constant.ADMIN_AUTH)
     public BaseResponse<Page<UserVO>> listUserHasDeletedVOByPage(@RequestBody UserQueryRequest userQueryRequest) {

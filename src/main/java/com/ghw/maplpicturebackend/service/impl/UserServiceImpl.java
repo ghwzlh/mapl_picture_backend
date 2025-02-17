@@ -2,12 +2,11 @@ package com.ghw.maplpicturebackend.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -15,6 +14,7 @@ import com.ghw.maplpicturebackend.Exception.ErrorCode;
 import com.ghw.maplpicturebackend.Exception.ThrowUtils;
 import com.ghw.maplpicturebackend.Utils.PasswordUtils;
 import com.ghw.maplpicturebackend.common.Constant;
+import com.ghw.maplpicturebackend.manage.auth.StpKit;
 import com.ghw.maplpicturebackend.model.DTO.User.UserLoginRequest;
 import com.ghw.maplpicturebackend.model.DTO.User.UserQueryRequest;
 import com.ghw.maplpicturebackend.model.DTO.User.UserRegisterRequest;
@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,6 +99,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 记录用户登录态
         HttpSession session = request.getSession();
         session.setAttribute(Constant.USER_LOGIN_STATE, user);
+        // 保存用户信息到Sa-Token，便于以后空间鉴权
+        StpKit.SPACE.login(user.getId());
+        StpKit.SPACE.getSession().set(Constant.USER_LOGIN_STATE, user);
         return this.getLoginUserVO(user);
     }
 
@@ -214,6 +216,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         Page<UserVO> userVOPage = new Page<>(current, pageSize, total);
         userVOPage.setRecords(userVOList);
         return userVOPage;
+    }
+
+    @Override
+    public boolean isAdmin(User user) {
+        String userRole = user.getUserRole();
+        ThrowUtils.throwIf(CharSequenceUtil.isBlank(userRole), ErrorCode.NOT_LOGIN_ERROR, "用户未登录", "user is not login");
+        return userRoleEnum.ADMIN.equals(userRoleEnum.getEnumByValue(userRole));
     }
 }
 

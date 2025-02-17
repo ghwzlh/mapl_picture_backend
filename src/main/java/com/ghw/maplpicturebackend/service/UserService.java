@@ -80,4 +80,11 @@ public interface UserService extends IService<User> {
      * 自己实现分页（带有deleted字段）
      */
     Page<UserVO> pageSelf(UserQueryRequest userQueryRequest);
+
+    /**
+     * 判断是否是admin
+     * @param user
+     * @return
+     */
+    boolean isAdmin(User user);
 }

@@ -14,16 +14,23 @@ public class UserQueryRequest extends PageRequest implements Serializable {
     /**
      * id
      */
+    @NotNull(message = "未输入ID，请输入值")
     private Long id;
 
     /**
      * 用户昵称
      */
+    @NotNull(message = "未输入昵称，请输入值")
+    @NotEmpty(message = "输入昵称为空字符串，请重新输入")
+    @Length(max = 20, message = "输入昵称长度有误，请重新输入")
     private String userName;
 
     /**
      * 账号
      */
+    @NotNull(message = "未输入账号，请输入值")
+    @NotEmpty(message = "输入账号为空字符串，请重新输入")
+    @Length(max = 12, min = 6, message = "输入账号长度有误，请重新输入")
     private String userAccount;
 
     /**
